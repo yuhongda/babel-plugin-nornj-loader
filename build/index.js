@@ -23,7 +23,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 module.exports = function (babel) {
     var t = babel.types;
 
-    var defaultExtensions = ['.t.html'];
+    var defaultExtensions = ['.t.html', '.t.htm', '.nj.html', '.nj.htm', '.nornj', '.nj'];
 
     return {
         visitor: {
@@ -74,9 +74,14 @@ module.exports = function (babel) {
 
                 templates = (0, _njLoader.loadTemplate)(content, mod.src, { outputH: outputH, delimiters: delimiters });
 
-                var variable = t.variableDeclarator(t.identifier(id), t.objectExpression(Object.keys(templates).map(function (key) {
-                    return t.objectProperty(t.identifier(key), t.identifier(templates[key]));
-                })));
+                var variable = void 0;
+                if (_nornj2.default.isObject(templates)) {
+                    variable = t.variableDeclarator(t.identifier(id), t.objectExpression(Object.keys(templates).map(function (key) {
+                        return t.objectProperty(t.identifier(key), t.CallExpression(t.memberExpression(t.identifier('nj'), t.identifier((0, _njLoader.getCompileFnName)(outputH))), [t.identifier(templates[key])]));
+                    })));
+                } else {
+                    variable = t.variableDeclarator(t.identifier(id), t.CallExpression(t.memberExpression(t.identifier('nj'), t.identifier((0, _njLoader.getCompileFnName)(outputH))), [t.identifier(templates)]));
+                }
 
                 path.replaceWith({
                     type: 'VariableDeclaration',

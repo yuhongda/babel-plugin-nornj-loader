@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-nornj-loader",
-  "version": "1.0.9",
+  "version": "1.0.12",
   "description": "",
   "main": "build/index.js",
   "scripts": {
@@ -11,14 +11,16 @@
     "template"
   ],
   "author": "yu.hongda",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
-    "nornj": "^0.4.2-rc.15",
+    "nornj": "^0.4.2",
     "require-resolve": "0.0.2"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-es2015-without-strict": "0.0.4",
     "babel-preset-stage-1": "^6.24.1",
