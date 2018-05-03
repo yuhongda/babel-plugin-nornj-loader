@@ -1,7 +1,6 @@
 const nj = require('nornj').default,
     includeParser = require('nornj/tools/includeParser'),
-    njUtils = require('nornj/tools/utils'),
-    loaderUtils = require('loader-utils');
+    njUtils = require('nornj/tools/utils');
 
 function buildTmplFns(fns, tmplKey) {
     let ret = '{\n';
@@ -21,13 +20,11 @@ function getCompileFnName(outputH) {
 }
 
 function loadTemplate(source, filepath, options) {
-    this.cacheable && this.cacheable();
-
     //Create delimiter rule of templates
     const { delimiters } = options;
     let tmplRule = nj.tmplRule;
     if (delimiters != null) {
-        if (delimiters.toLowerCase() === 'react') {
+        if (nj.isString(delimiters) && delimiters.toLowerCase() === 'react') {
             tmplRule = nj.createTmplRule({
             start: '{',
             end: '}',
@@ -38,29 +35,38 @@ function loadTemplate(source, filepath, options) {
         }
     }
 
-    //Default conversion to compiled template functions
-    let compiled = true;
-
     //Set configs for extension tags and filters
     if (options.extensionConfig) {
-        let extensionConfig = {};
-        nj.each(options.extensionConfig, (v, k) => {
-            extensionConfig[k] = {
-            options: v
-            };
-        });
-
-        nj.registerExtension(extensionConfig);
+      let extensionConfig = {},
+          extensionConfigs = options.extensionConfig;
+      if (!Array.isArray(extensionConfigs)) {
+          extensionConfigs = [extensionConfigs];
+      }
+  
+      nj.each(extensionConfigs, exConfig => {
+          nj.each(exConfig, (v, k) => {
+              extensionConfig[k] = {
+                  options: v
+              };
+          });
+      });
+      nj.registerExtension(extensionConfig);
     }
     if (options.filterConfig) {
-        let filterConfig = {};
-        nj.each(options.filterConfig, (v, k) => {
-            filterConfig[k] = {
-            options: v
-            };
-        });
-
-        nj.registerFilter(filterConfig);
+      let filterConfig = {},
+          filterConfigs = options.filterConfig;
+      if (!Array.isArray(filterConfigs)) {
+          filterConfigs = [filterConfigs];
+      }
+  
+      nj.each(filterConfigs, fConfig => {
+          nj.each(fConfig, (v, k) => {
+              filterConfig[k] = {
+                  options: v
+              };
+          });
+      });
+      nj.registerFilter(filterConfig);
     }
 
     //Parse the "include" and "template" block
@@ -72,25 +78,14 @@ function loadTemplate(source, filepath, options) {
     if (tmplNames.length == 1 && tmplNames[0] === 'main') {
         if (tmpls.main.trim().length > 0) {
             const tmplKey = njUtils.uniqueKey(tmpls.main);
-
-            if (compiled) {
-                output = 'nj.' + getCompileFnName(options.outputH) + '(' + buildTmplFns(nj.precompile(tmpls.main, options.outputH, tmplRule), tmplKey) + ');';
-            } else {
-                output = buildTmplFns(nj.precompile(tmpls.main, options.outputH, tmplRule), tmplKey) + ';';
-            }
+            output = buildTmplFns(nj.precompile(tmpls.main, options.outputH, tmplRule), tmplKey);
         }
     } else { //Output multiple templates
         var tmplsStr = {};
         nj.each(tmpls, (tmpl, name, i, l) => {
             if (tmpl.trim().length > 0) {
                 const tmplKey = njUtils.uniqueKey(tmpl);
-                
-                if (compiled) {
-                    tmplsStr[name] = 'nj.' + getCompileFnName(options.outputH) + '(' + buildTmplFns(nj.precompile(tmpl, options.outputH, tmplRule), tmplKey) + ')';
-                } else {
-                    tmplsStr[name] = buildTmplFns(nj.precompile(tmpl, options.outputH, tmplRule), tmplKey);
-                }
-
+                tmplsStr[name] = buildTmplFns(nj.precompile(tmpl, options.outputH, tmplRule), tmplKey);
             }
         });
         output = tmplsStr;
@@ -100,7 +95,8 @@ function loadTemplate(source, filepath, options) {
 };
 
 module.exports = {
-    loadTemplate
+    loadTemplate,
+    getCompileFnName
 }
 
 

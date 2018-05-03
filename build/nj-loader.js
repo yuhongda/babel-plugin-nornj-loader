@@ -1,7 +1,8 @@
+'use strict';
+
 var nj = require('nornj').default,
     includeParser = require('nornj/tools/includeParser'),
-    njUtils = require('nornj/tools/utils'),
-    loaderUtils = require('loader-utils');
+    njUtils = require('nornj/tools/utils');
 
 function buildTmplFns(fns, tmplKey) {
     var ret = '{\n';
@@ -21,14 +22,12 @@ function getCompileFnName(outputH) {
 }
 
 function loadTemplate(source, filepath, options) {
-    this.cacheable && this.cacheable();
-
     //Create delimiter rule of templates
     var delimiters = options.delimiters;
 
     var tmplRule = nj.tmplRule;
     if (delimiters != null) {
-        if (delimiters.toLowerCase() === 'react') {
+        if (nj.isString(delimiters) && delimiters.toLowerCase() === 'react') {
             tmplRule = nj.createTmplRule({
                 start: '{',
                 end: '}',
@@ -39,28 +38,37 @@ function loadTemplate(source, filepath, options) {
         }
     }
 
-    //Default conversion to compiled template functions
-    var compiled = true;
-
     //Set configs for extension tags and filters
     if (options.extensionConfig) {
-        var extensionConfig = {};
-        nj.each(options.extensionConfig, function (v, k) {
-            extensionConfig[k] = {
-                options: v
-            };
-        });
+        var extensionConfig = {},
+            extensionConfigs = options.extensionConfig;
+        if (!Array.isArray(extensionConfigs)) {
+            extensionConfigs = [extensionConfigs];
+        }
 
+        nj.each(extensionConfigs, function (exConfig) {
+            nj.each(exConfig, function (v, k) {
+                extensionConfig[k] = {
+                    options: v
+                };
+            });
+        });
         nj.registerExtension(extensionConfig);
     }
     if (options.filterConfig) {
-        var filterConfig = {};
-        nj.each(options.filterConfig, function (v, k) {
-            filterConfig[k] = {
-                options: v
-            };
-        });
+        var filterConfig = {},
+            filterConfigs = options.filterConfig;
+        if (!Array.isArray(filterConfigs)) {
+            filterConfigs = [filterConfigs];
+        }
 
+        nj.each(filterConfigs, function (fConfig) {
+            nj.each(fConfig, function (v, k) {
+                filterConfig[k] = {
+                    options: v
+                };
+            });
+        });
         nj.registerFilter(filterConfig);
     }
 
@@ -73,12 +81,7 @@ function loadTemplate(source, filepath, options) {
     if (tmplNames.length == 1 && tmplNames[0] === 'main') {
         if (tmpls.main.trim().length > 0) {
             var tmplKey = njUtils.uniqueKey(tmpls.main);
-
-            if (compiled) {
-                output = 'nj.' + getCompileFnName(options.outputH) + '(' + buildTmplFns(nj.precompile(tmpls.main, options.outputH, tmplRule), tmplKey) + ');';
-            } else {
-                output = buildTmplFns(nj.precompile(tmpls.main, options.outputH, tmplRule), tmplKey) + ';';
-            }
+            output = buildTmplFns(nj.precompile(tmpls.main, options.outputH, tmplRule), tmplKey);
         }
     } else {
         //Output multiple templates
@@ -86,37 +89,16 @@ function loadTemplate(source, filepath, options) {
         nj.each(tmpls, function (tmpl, name, i, l) {
             if (tmpl.trim().length > 0) {
                 var _tmplKey = njUtils.uniqueKey(tmpl);
-
-                if (compiled) {
-                    tmplsStr[name] = 'nj.' + getCompileFnName(options.outputH) + '(' + buildTmplFns(nj.precompile(tmpl, options.outputH, tmplRule), _tmplKey) + ')';
-                } else {
-                    tmplsStr[name] = buildTmplFns(nj.precompile(tmpl, options.outputH, tmplRule), _tmplKey);
-                }
+                tmplsStr[name] = buildTmplFns(nj.precompile(tmpl, options.outputH, tmplRule), _tmplKey);
             }
         });
         output = tmplsStr;
     }
 
     return output;
-
-    // return {
-    //     supplierList: nj.compile({
-    //       _njTmplKey: -201639510,
-    //       useString: true,
-    //       main: function anonymous(p1,p2,p3,p4,p5) {
-
-    //         var _type0 = 'div';
-    //         var _params0 = ' class="' + '{styles.supplierList}' + '"';
-    //         var _children0 = '';
-
-    //         _children0 += '\n' + '  ' + p1.ls(p2) + '123';
-
-    //         return '<' + _type0 + _params0 + '>' + _children0 + '\n' + p1.ls(p2) + '</' + _type0 + '>';
-    //       }
-    //     })
-    // };
 };
 
 module.exports = {
-    loadTemplate: loadTemplate
+    loadTemplate: loadTemplate,
+    getCompileFnName: getCompileFnName
 };

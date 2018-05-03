@@ -3,13 +3,18 @@ import fs from 'fs';
 import nodePath from 'path';
 import requireResolve from 'require-resolve';
 import nj from 'nornj';
-import { loadTemplate } from './nj-loader';
+import { loadTemplate, getCompileFnName } from './nj-loader';
 
 module.exports = function(babel) {
     var t = babel.types;
 
     const defaultExtensions = [
-        '.t.html'
+        '.t.html',
+        '.t.htm',
+        '.nj.html',
+        '.nj.htm',
+        '.nornj',
+        '.nj'
     ];
 
     return {
@@ -39,9 +44,21 @@ module.exports = function(babel) {
 
                 templates = loadTemplate(content, mod.src, {outputH, delimiters});
 
-                const variable = t.variableDeclarator(t.identifier(id), t.objectExpression(Object.keys(templates).map(key => {
-                    return t.objectProperty(t.identifier(key), t.identifier(templates[key]))
-                })));
+                let variable;
+                if(nj.isObject(templates)) {
+                    variable = t.variableDeclarator(t.identifier(id), t.objectExpression(Object.keys(templates).map(key => {
+                        return t.objectProperty(t.identifier(key), t.CallExpression(
+                          t.memberExpression(t.identifier('nj'), t.identifier(getCompileFnName(outputH))),
+                          [t.identifier(templates[key])]
+                        ));
+                    })));
+                }
+                else {
+                    variable = t.variableDeclarator(t.identifier(id), t.CallExpression(
+                      t.memberExpression(t.identifier('nj'), t.identifier(getCompileFnName(outputH))),
+                      [t.identifier(templates)]
+                    ));
+                }
 
                 path.replaceWith({
                     type: 'VariableDeclaration',
