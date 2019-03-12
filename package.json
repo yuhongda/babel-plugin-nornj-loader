@@ -13,10 +13,10 @@
   "author": "yu.hongda",
   "license": "MIT",
   "dependencies": {
-    "nornj": "^0.4.2",
     "require-resolve": "0.0.2"
   },
   "devDependencies": {
+    "nornj": "^0.4.2",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
