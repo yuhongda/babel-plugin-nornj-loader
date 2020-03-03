@@ -1,6 +1,6 @@
 # babel-plugin-nornj-loader
 
-make [nornj-loader](https://github.com/joe-sky/nornj-loader) enabled to run in babel.
+make [nornj-loader](https://github.com/joe-sky/nornj/tree/master/packages/nornj-loader) enabled to run in babel.
 
 Install
 -----
