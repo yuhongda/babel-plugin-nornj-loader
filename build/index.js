@@ -35,6 +35,8 @@ module.exports = function (babel) {
                 var extensions = state && state.opts && state.opts.extensions || defaultExtensions;
                 var outputH = state && state.opts && state.opts.outputH || true;
                 var delimiters = state && state.opts && state.opts.delimiters || 'react';
+                var filterConfig = state && state.opts && state.opts.filterConfig || {};
+                var extensionConfig = state && state.opts && state.opts.extensionConfig || {};
                 var shouldUseNjLoader = false;
                 var templates = [];
 
@@ -72,7 +74,7 @@ module.exports = function (babel) {
                 var mod = (0, _requireResolve2.default)(src, _path2.default.resolve(reference));
                 var content = _fs2.default.readFileSync(mod.src).toString();
 
-                templates = (0, _njLoader.loadTemplate)(content, mod.src, { outputH: outputH, delimiters: delimiters });
+                templates = (0, _njLoader.loadTemplate)(content, mod.src, { outputH: outputH, delimiters: delimiters, filterConfig: filterConfig, extensionConfig: extensionConfig });
 
                 var variable = void 0;
                 if (_nornj2.default.isObject(templates)) {

@@ -26,6 +26,8 @@ module.exports = function(babel) {
                 const extensions = (state && state.opts && state.opts.extensions) || defaultExtensions;
                 const outputH = (state && state.opts && state.opts.outputH) || true;
                 const delimiters = (state && state.opts && state.opts.delimiters) || 'react';
+                const filterConfig = state && state.opts && state.opts.filterConfig || {};
+                const extensionConfig = state && state.opts && state.opts.extensionConfig || {};
                 let shouldUseNjLoader = false;
                 let templates = [];
 
@@ -42,7 +44,7 @@ module.exports = function(babel) {
                 const mod = requireResolve(src, nodePath.resolve(reference));
                 const content = fs.readFileSync(mod.src).toString();
 
-                templates = loadTemplate(content, mod.src, {outputH, delimiters});
+                templates = loadTemplate(content, mod.src, { outputH, delimiters, filterConfig, extensionConfig });
 
                 let variable;
                 if(nj.isObject(templates)) {
